@@ -7,7 +7,12 @@ const universal_analytics_1 = tslib_1.__importDefault(require("universal-analyti
 class GoogleAnalytics extends winston_transport_1.default {
     constructor(params) {
         super(params);
-        this.visitor = universal_analytics_1.default(params.accountID);
+        if (params.clientID) {
+            this.visitor = universal_analytics_1.default(params.accountID, params.clientID, { strictCidFormat: false });
+        }
+        else {
+            this.visitor = universal_analytics_1.default(params.accountID);
+        }
     }
     log(info, callback) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {

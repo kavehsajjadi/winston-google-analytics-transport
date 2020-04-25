@@ -2,7 +2,7 @@ import * as path from 'path';
 import { SPLAT } from 'triple-beam';
 import { default as Transport, TransportStreamOptions } from 'winston-transport';
 import { default as ua, EventParams, PageviewParams, Visitor, VisitorOptions } from 'universal-analytics';
-export type GoogleAnalyticsConstructorParams = TransportStreamOptions & { accountID: string };
+export type GoogleAnalyticsConstructorParams = TransportStreamOptions & { accountID: string; clientID?: string };
 export type GoogleAnalyticsLogParams = EventParams | PageviewParams;
 
 export class GoogleAnalytics extends Transport {
@@ -10,7 +10,11 @@ export class GoogleAnalytics extends Transport {
 
   constructor(params: GoogleAnalyticsConstructorParams) {
     super(params);
-    this.visitor = ua(params.accountID);
+    if (params.clientID) {
+      this.visitor = ua(params.accountID, params.clientID, { strictCidFormat: false });
+    } else {
+      this.visitor = ua(params.accountID);
+    }
   }
 
   async log(info: any, callback: (_: any, __: boolean) => void) {

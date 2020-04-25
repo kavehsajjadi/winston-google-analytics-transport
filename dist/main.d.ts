@@ -2,6 +2,7 @@ import { default as Transport, TransportStreamOptions } from 'winston-transport'
 import { EventParams, PageviewParams } from 'universal-analytics';
 export declare type GoogleAnalyticsConstructorParams = TransportStreamOptions & {
     accountID: string;
+    clientID?: string;
 };
 export declare type GoogleAnalyticsLogParams = EventParams | PageviewParams;
 export declare class GoogleAnalytics extends Transport {
