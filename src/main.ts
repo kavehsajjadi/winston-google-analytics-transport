@@ -1,19 +1,28 @@
+import * as path from 'path';
+import { SPLAT } from 'triple-beam';
 import { default as Transport, TransportStreamOptions } from 'winston-transport';
-import { EventParams, PageviewParams, Visitor, VisitorOptions } from 'universal-analytics';
-
-export type GoogleAnalyticsConstructorParams = TransportStreamOptions & VisitorOptions;
-export type GoogleAnalyticsLogParams = { analytics: EventParams | PageviewParams };
+import { default as ua, EventParams, PageviewParams, Visitor, VisitorOptions } from 'universal-analytics';
+export type GoogleAnalyticsConstructorParams = TransportStreamOptions & { accountID: string };
+export type GoogleAnalyticsLogParams = EventParams | PageviewParams;
 
 export class GoogleAnalytics extends Transport {
   private visitor: Visitor;
 
   constructor(params: GoogleAnalyticsConstructorParams) {
     super(params);
-    this.visitor = new Visitor(params);
+    this.visitor = ua(params.accountID);
   }
 
-  async log(info: GoogleAnalyticsLogParams, callback: (_: any, __: boolean) => void) {
-    const params = info.analytics;
+  async log(info: any, callback: (_: any, __: boolean) => void) {
+    // we only care if an object with the shape { analytics: GoogleAnalyticsLogParams } is passed in
+    const { label, message, ...meta } = info;
+
+    const [_, params] = meta[SPLAT];
+
+    if (!params) {
+      this.emit('warn', 'no params');
+      return;
+    }
 
     if (this.isEventParams(params)) {
       await this.sendEvent(params);
@@ -25,15 +34,18 @@ export class GoogleAnalytics extends Transport {
       return callback(null, true);
     }
 
+    this.emit('warn', 'nothing passed');
     return callback(null, false);
   }
 
   private async sendPageview(params: PageviewParams) {
-    this.visitor.pageview(params);
+    await this.visitor.pageview(params).send();
+    this.emit('logged', params);
   }
 
   private async sendEvent(params: EventParams) {
-    this.visitor.event(params);
+    await this.visitor.event(params).send();
+    this.emit('logged', params);
   }
 
   private isEventParams(params: any): params is EventParams {
