@@ -1,0 +1,26 @@
+{
+  "name": "winston-google-analytics-transport",
+  "version": "1.0.0",
+  "author": "Kaveh Sajjadi <kaveh.sajjadi@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:kavehsajjadi/winston-google-analytics-transport.git"
+  },
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "scripts": {
+    "test": "jest",
+    "lint": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "universal-analytics": "^0.4.20",
+    "winston": "^3.2.1",
+    "winston-transport": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^13.13.2",
+    "@types/universal-analytics": "^0.4.4",
+    "tslib": "^1.11.1"
+  }
+}
