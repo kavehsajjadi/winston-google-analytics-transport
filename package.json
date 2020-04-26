@@ -1,6 +1,6 @@
 {
   "name": "winston-google-analytics-transport",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "Kaveh Sajjadi <kaveh.sajjadi@gmail.com>",
   "repository": {
     "type": "git",
