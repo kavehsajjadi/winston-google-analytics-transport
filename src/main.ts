@@ -38,7 +38,7 @@ export class GoogleAnalytics extends Transport {
       return callback(null, true);
     }
 
-    this.emit('warn', 'nothing passed');
+    this.emit('error', 'nothing passed');
     return callback(null, false);
   }
 
