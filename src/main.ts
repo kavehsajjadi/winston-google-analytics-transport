@@ -1,8 +1,20 @@
 import * as path from 'path';
 import { SPLAT } from 'triple-beam';
-import { default as Transport, TransportStreamOptions } from 'winston-transport';
-import { default as ua, EventParams, PageviewParams, Visitor, VisitorOptions } from 'universal-analytics';
-export type GoogleAnalyticsConstructorParams = TransportStreamOptions & { accountID: string; clientID?: string };
+import {
+  default as Transport,
+  TransportStreamOptions,
+} from 'winston-transport';
+import {
+  default as ua,
+  EventParams,
+  PageviewParams,
+  Visitor,
+  VisitorOptions,
+} from 'universal-analytics';
+export type GoogleAnalyticsConstructorParams = TransportStreamOptions & {
+  accountID: string;
+  clientID?: string;
+};
 export type GoogleAnalyticsLogParams = EventParams | PageviewParams;
 
 export class GoogleAnalytics extends Transport {
@@ -11,45 +23,54 @@ export class GoogleAnalytics extends Transport {
   constructor(params: GoogleAnalyticsConstructorParams) {
     super(params);
     if (params.clientID) {
-      this.visitor = ua(params.accountID, params.clientID, { strictCidFormat: false });
+      this.visitor = ua(params.accountID, params.clientID, {
+        strictCidFormat: false,
+      });
     } else {
       this.visitor = ua(params.accountID);
     }
   }
 
-  async log(info: any, callback: (_: any, __: boolean) => void) {
-    // we only care if an object with the shape { analytics: GoogleAnalyticsLogParams } is passed in
+  // the callback is not documented in winston
+  async log(info: any, callback: (_?: any, __?: boolean) => void) {
     const { label, message, ...meta } = info;
+
+    if (!meta || !meta[SPLAT]) {
+      this.emit('finish');
+      callback(null);
+      return;
+    }
 
     const [_, params] = meta[SPLAT];
 
     if (!params) {
-      this.emit('warn', 'no params');
+      this.emit('finish');
+      callback(null);
       return;
     }
 
     if (this.isEventParams(params)) {
-      await this.sendEvent(params);
-      return callback(null, true);
+      try {
+        await this.visitor.event(params).send();
+        return callback(null, true);
+      } catch (e) {
+        this.emit('error');
+        callback(null, false);
+      }
     }
 
     if (this.isPageviewParams(params)) {
-      await this.sendPageview(params);
-      return callback(null, true);
+      try {
+        await this.visitor.pageview(params);
+        return callback(null, true);
+      } catch (e) {
+        this.emit('error');
+        callback(null, false);
+      }
     }
 
     this.emit('error', 'nothing passed');
     return callback(null, false);
-  }
-
-  private async sendPageview(params: PageviewParams) {
-    await this.visitor.pageview(params).send();
-    this.emit('logged', params);
-  }
-
-  private async sendEvent(params: EventParams) {
-    await this.visitor.event(params).send();
-    this.emit('logged', params);
   }
 
   private isEventParams(params: any): params is EventParams {

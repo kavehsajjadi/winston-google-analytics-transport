@@ -9,8 +9,6 @@ export declare class GoogleAnalytics extends Transport {
     private visitor;
     constructor(params: GoogleAnalyticsConstructorParams);
     log(info: any, callback: (_: any, __: boolean) => void): Promise<void>;
-    private sendPageview;
-    private sendEvent;
     private isEventParams;
     private isPageviewParams;
 }
